@@ -15,6 +15,18 @@
 #define DIGIT 10
 
 // Queue structure, feel free to modify accoding to your requirements
+typedef struct queue_t {
+    char **chunks; // Array of strings to hold chunks
+    int done; // Flag to indicate if processing is done
+    int front; // Index of the front of the queue
+    int rear; // Index of the rear of the queue
+    int size; // Current size of the queue
+    int capacity; // Maximum capacity of the queue
+    pthread_mutex_t mutex; // Mutex for thread safety
+    pthread_cond_t not_empty; // Condition variable for not empty
+    pthread_cond_t not_full; // Condition variable for not full
+    int digit_count[10]; // Count of digits 0-9
+} queue_t;
 struct QueueStruct {
     char chunk[1024];
 };
@@ -54,3 +66,4 @@ typedef struct responseMessage {
 } resp_message_t;
 
 #endif
+
