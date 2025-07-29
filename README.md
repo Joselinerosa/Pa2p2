@@ -5,9 +5,9 @@ Phase 2
 1. Team members: Joseline Rosa & Peyton Tregembo
 2. x500: Rosa0168 & Trege006
 3. Division of tasks:
-Client.c: Joseline
-Server.c: Peyton 
-README.md: Peyton 
+Client.c: Joseline.
+Server.c: Peyton.
+README.md: Peyton.
 5. Lab machine used: SSH trege006@csel-khl1260-17.cselabs.umn.edu 
                      SSH rosa0168@csel-khl1260-17.cselabs.umn.edu 
 
