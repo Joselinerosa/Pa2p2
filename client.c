@@ -101,7 +101,7 @@ free(chunk); // Free the chunk after processing
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(serverport);       
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Change to server IP if needed  
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");  
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Connection failed");
         close(sockfd);
