@@ -22,6 +22,10 @@ Peyton:
 - Debugging multithreaded logic in VSCode
 - ensuring proper synchronization of shared resoruces
 - maintaining thread safety during register/deregister operations without leaking memory or corrupting the linked list
+Joseline:
+- Making sure the client part aligns with the server
+- Understanding the logic behind having them talk to eachother
+- Ensuring no memory leak
 
 
 ## AI Tools Usage
