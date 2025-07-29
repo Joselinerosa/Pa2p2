@@ -68,8 +68,6 @@ void *processChunks(void *args) {
 
         
 
-        // done condition (a variable and condvar)
-        // Check for a condition to exit the loop, e.g., a special chunk or a flag
         if (queue->size == 0 && queue->done) { 
             pthread_mutex_unlock(&queue->mutex);
             break; // Exit the loop if done condition is met
@@ -92,10 +90,26 @@ free(chunk); // Free the chunk after processing
     }
     return NULL;
 }
-        // Critical sections which are independent should be handled independently
-        // Signal main thread that a chunk has been processed
+ int connectToServer(int serverport) {
+    int sockfd;
+    struct sockaddr_in server_addr;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        perror("Socket  failed");
+        return -1;
+    }
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(serverport);       
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Change to server IP if needed  
+    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Connection failed");
+        close(sockfd);
+        return -1;
+    }
+    return sockfd;
+}
 
-// main thread
 int main(int argc, char *argv[]) {
     // Argument checking
     if (argc != 6) {
@@ -149,27 +163,81 @@ int main(int argc, char *argv[]) {
         pthread_cond_broadcast(&queue->not_empty);
         pthread_mutex_unlock(&queue->mutex);
 
+    // Join threads
+
         for (int i = 0; i < nthreads; i++) {
             pthread_join(threads[i], NULL);
         }
 
     
-    // Join threads
     // print per digit count
+    printf("Digit counts:\n");
     for (int i = 0; i < 10; i++) {
         fprintf(stdout, "Digit %d: %d\n", i, queue->digit_count[i]);
     }   
     
     // establish TCP connection with server
+    int sockfd = connectToServer(serverport);
+    if (sockfd < 0) {
+        fprintf(stderr, "Failed to connect to server\n");
+        exit(EXIT_FAILURE);
+    }
+     // register
+    req_message_t req;
+    resp_message_t resp;
+    memset(&req, 0, sizeof(req));
+    memset(&resp, 0, sizeof(resp));
+
+    req.reqcode = REGISTER;
+    req.clientid = clientid;
+
+    send(sockfd, &req, sizeof(req), 0);
+    if (recv(sockfd, &resp, sizeof(resp), 0) <= 0 || resp.respcode != RSP_OK) {
+        fprintf(stderr, "Registration failed\n");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+}
+    printf("Client %d registered successfully.\n", clientid);
     
-    // register
+   
 
     // digit
+    req.reqcode = DIGITCOUNT;
+    for (int i = 0; i < 10; i++) {
+        req.data[i] = queue->digit_count[i]; // Fill request data with digit counts
+    }
+    send(sockfd, &req, sizeof(req), 0);
+    recv(sockfd, &resp, sizeof(resp), 0);
     
     // latestcount
-    // print latest per digit count
+    req.reqcode = LATESTCOUNT;
+    memset(req.data, 0, sizeof(req.data));
+    send(sockfd, &req, sizeof(req), 0);
+    recv(sockfd, &resp, sizeof(resp), 0);
+    if (resp.respcode == RSP_OK) {
+        printf("Latest digit counts received:\n");
+        for (int i = 0; i < 10; i++) {
+            printf("Digit %d: %d\n", i, resp.data[i]);
+        }
+    } else {
+        fprintf(stderr, "Failed to digit counts.\n");
+    }   
+
+        // closing connection
+
 
     // De-register
+    req.reqcode = DEREGISTER;
+    req.clientid = clientid;
+    memset(req.data, 0, sizeof(req.data)); 
+    send(sockfd, &req, sizeof(req), 0);
+    recv(sockfd, &resp, sizeof(resp), 0);
+    if (resp.respcode == RSP_OK) {
+        printf("Client %d deregistered successfully.\n", clientid);
+    } else {
+        fprintf(stderr, "Failed to deregister client %d.\n", clientid);
+    }
+    close(sockfd);
     
     pthread_mutex_destroy(&queue->mutex);
     pthread_cond_destroy(&queue->not_empty);
