@@ -26,10 +26,12 @@ Joseline:
 - Making sure the client part aligns with the server
 - Understanding the logic behind having them talk to eachother
 - Ensuring no memory leak
+- Making sure that the correct output was printed
 
 
 ## AI Tools Usage
 Peyton: I used AI to to verify correct usage of socket API functions and struct packing
+Joseline: I used AI to correct my syntax for establishing the TCP connection
 
 
 ## Additional Notes
